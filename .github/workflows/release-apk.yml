@@ -1,0 +1,63 @@
+name: Build & Release Android APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    name: Build Release APK
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: |
+          cd bloodconnect_app
+          flutter pub get
+
+      - name: Build Android APK
+        run: |
+          cd bloodconnect_app
+          flutter build apk --release
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BloodConnect-Android-APK
+          path: bloodconnect_app/build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        with:
+          tag_name: ${{ github.ref_name || 'v1.0.0' }}
+          name: BloodConnect Mobile App v1.0.0
+          body: |
+            ## 🩸 BloodConnect Android Mobile Application
+            Official Android Release APK for the BloodConnect donor and recipient platform.
+            
+            ### 📱 Installation Instructions:
+            1. Download the `app-release.apk` file below on your Android mobile device.
+            2. Tap the downloaded `.apk` file to install.
+            3. If prompted, enable "Install unknown apps" in Settings.
+            4. Open **BloodConnect** and log in or register as a hero donor!
+          files: bloodconnect_app/build/app/outputs/flutter-apk/app-release.apk

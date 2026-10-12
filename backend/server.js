@@ -38,6 +38,23 @@ if (fs.existsSync(flutterDir)) {
   app.use('/flutter', express.static(flutterDir));
 }
 
+// Serve Mobile Release APK directly for download
+const getApkPath = () => {
+  const rootApk = path.resolve(__dirname, '../bloodconnect-release.apk');
+  const buildApk = path.resolve(__dirname, '../bloodconnect_app/build/app/outputs/flutter-apk/app-release.apk');
+  if (fs.existsSync(rootApk)) return rootApk;
+  if (fs.existsSync(buildApk)) return buildApk;
+  return null;
+};
+
+app.get(['/download/apk', '/bloodconnect.apk', '/download'], (req, res) => {
+  const apkPath = getApkPath();
+  if (apkPath) {
+    return res.download(apkPath, 'BloodConnect-v1.0.apk');
+  }
+  return res.status(404).send('APK is currently building or not found. Please try again shortly.');
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/donors', donorRoutes);
