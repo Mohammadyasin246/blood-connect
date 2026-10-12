@@ -1,0 +1,15 @@
+{
+  "name": "bloodconnect-appium-tests",
+  "version": "1.0.0",
+  "description": "BloodConnect Appium E2E Android Mobile Tests",
+  "main": "run-appium.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node run-appium.js"
+  },
+  "dependencies": {
+    "bloodconnect": "file:..",
+    "exceljs": "^4.4.0",
+    "webdriverio": "^8.39.0"
+  }
+}

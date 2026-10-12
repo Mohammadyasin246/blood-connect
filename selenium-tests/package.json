@@ -1,0 +1,17 @@
+{
+  "name": "bloodconnect-selenium-tests",
+  "version": "1.0.0",
+  "description": "BloodConnect E2E Web Tests using Selenium WebDriver",
+  "main": "test-suite.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "mocha test-suite.js --timeout 60000 --exit"
+  },
+  "dependencies": {
+    "bloodconnect": "file:..",
+    "chromedriver": "^130.0.0",
+    "exceljs": "^4.4.0",
+    "mocha": "^10.7.3",
+    "selenium-webdriver": "^4.25.0"
+  }
+}
