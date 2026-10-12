@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="BloodConnect — A Smart Blood Donor and Recipient Connection System with Proximity Haversine Matching, Emergency Alerts, and Admin Analytics.">
+  <title>BloodConnect — Smart Blood Donor & Recipient Connection System</title>
+
+  <!-- Google Fonts: Outfit & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <!-- Master Application CSS -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- ========================================================================
+       SCREEN A: Splash Screen (Auto-dismisses in 2s or on skip)
+       ======================================================================== -->
+  <div id="splash-screen">
+    <div class="splash-content">
+      <div class="splash-heartbeat">🩸</div>
+      <h1 class="splash-title">BLOODCONNECT</h1>
+      <p class="splash-motto">"Every Drop Matters"</p>
+      <div class="splash-loader-bar">
+        <div class="splash-loader-fill"></div>
+      </div>
+      <p style="font-size: 0.85rem; color: #64748b;">A Smart CSE Blood Donor & Recipient Connection System</p>
+      <button class="splash-skip-btn" id="btn-skip-splash">Skip to App &rarr;</button>
+    </div>
+  </div>
+
+
+  <!-- ========================================================================
+       Main Header & Navigation Bar
+       ======================================================================== -->
+  <header class="main-navbar">
+    <a href="#welcome" class="nav-brand" data-view-target="welcome">
+      <div class="brand-icon">🩸</div>
+      <div class="brand-name">Blood<span>Connect</span></div>
+    </a>
+
+    <nav>
+      <ul class="nav-links">
+        <li><a href="#welcome" class="nav-link active" data-view-target="welcome">Home</a></li>
+        <li><a href="#search" class="nav-link" data-view-target="search">🔎 Find Donors</a></li>
+        <li id="nav-link-donor" style="display:none;"><a href="#donor" class="nav-link" data-view-target="donor">🩸 Donor Hub</a></li>
+        <li id="nav-link-recipient" style="display:none;"><a href="#recipient" class="nav-link" data-view-target="recipient">🚨 My Requests</a></li>
+        <li><button class="nav-link" id="nav-btn-admin-special" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer;">🛡️ Admin Portal</button></li>
+        <li id="nav-link-admin" style="display:none;"><a href="#admin" class="nav-link" data-view-target="admin">🛡️ Admin Dashboard</a></li>
+      </ul>
+    </nav>
+
+    <div class="nav-right-actions">
+      <!-- Notification Bell -->
+      <button class="notif-bell-btn" id="btn-notif-bell" title="Notifications">
+        🔔
+        <span class="notif-badge" id="notif-badge-count" style="display:none;">0</span>
+      </button>
+
+      <!-- Auth Buttons / User Profile -->
+      <button class="btn btn-secondary btn-sm" id="nav-login-btn">Log In</button>
+      <button class="btn btn-primary btn-sm" id="nav-register-btn">Create Account</button>
+
+      <div class="user-profile-menu" id="nav-user-menu" style="display:none;">
+        <div class="user-avatar-small" id="nav-user-avatar">U</div>
+        <div>
+          <div class="user-name-small" id="nav-user-name">User</div>
+          <span class="user-role-badge" id="nav-user-role">Role</span>
+        </div>
+        <button class="btn btn-sm" id="nav-logout-btn" style="background:transparent; color:#94a3b8; padding:2px 6px;" title="Logout">🚪</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       MAIN APP CONTAINER & VIEWS
+       ======================================================================== -->
+  <main>
+
+    <!-- VIEW 1: WELCOME / LANDING SCREEN (Screen B) -->
+    <section id="view-welcome" class="view-container active">
+      <div class="hero-section">
+        <div class="hero-badge-pill">
+          <span>🚨 24/7 Smart Emergency Connection Network</span>
+        </div>
+        <h1 class="hero-title">
+          Save Lives. <span class="highlight">Donate Blood.</span> Connect in Seconds.
+        </h1>
+        <p class="hero-desc">
+          BloodConnect uses automated proximity matching with the <b>Haversine Formula</b> to connect critical patients directly with verified, nearby volunteer donors within kilometers.
+        </p>
+
+        <div class="hero-actions">
+          <button class="btn btn-emergency-pulse" id="hero-emergency-btn">
+            🚨 Emergency Blood Request
+          </button>
+          <a href="#search" class="btn btn-secondary" data-view-target="search">
+            🔎 Find Nearby Donors
+          </a>
+          <button class="btn btn-outline-danger" id="hero-login-btn">
+            🔑 Login to Dashboard
+          </button>
+          <button class="btn btn-primary" id="hero-register-btn">
+            🩸 Register as Donor
+          </button>
+        </div>
+
+        <!-- Live Metrics Strip -->
+        <div class="hero-stats-strip">
+          <div class="stat-box">
+            <div class="stat-box-val">1,250+</div>
+            <div class="stat-box-label">Verified Heroes</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-box-val">3.2 km</div>
+            <div class="stat-box-label">Average Response Proximity</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-box-val">950+</div>
+            <div class="stat-box-label">Successful Transfusions</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-box-val">100%</div>
+            <div class="stat-box-label">Free & Non-Profit</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature Highlights -->
+      <div class="container">
+        <div class="dashboard-grid">
+          <div class="glass-card">
+            <div class="section-header">
+              <h3 class="section-title">🩸 How BloodConnect Works</h3>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+              <div style="background: rgba(255,255,255,0.02); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-subtle);">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🧑</div>
+                <h4>1. Recipient Requests</h4>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+                  Patient enters required blood group, hospital location, and urgency (Normal, Urgent, Emergency).
+                </p>
+              </div>
+              <div style="background: rgba(255,255,255,0.02); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-subtle);">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">⚡</div>
+                <h4>2. Proximity Matching</h4>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+                  The server computes great-circle distances via the Haversine formula and checks ABO/Rh compatibility.
+                </p>
+              </div>
+              <div style="background: rgba(255,255,255,0.02); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-subtle);">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔔</div>
+                <h4>3. Instant Alert & Accept</h4>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+                  Nearest available donors receive high-priority alerts with a 1-tap Accept button, ensuring rapid response.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <div class="section-header">
+              <h3 class="section-title">🛡️ Medical Safety Rules</h3>
+            </div>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem; color: var(--text-muted);">
+              <li>✅ <b>90-Day Safe Interval:</b> Safe donation recovery period enforced automatically.</li>
+              <li>✅ <b>Privacy Protection:</b> Donors' private mobile numbers are masked by default.</li>
+              <li>✅ <b>Hospital Verification:</b> Hospital verification ensures clinical compliance.</li>
+              <li>✅ <b>Official Certificates:</b> Automated appreciation certificate upon completion.</li>
+            </ul>
+            <div style="margin-top: 1.5rem;">
+              <a href="#search" class="btn btn-secondary btn-sm" data-view-target="search" style="width: 100%;">
+                🔎 Search Donors in Your City
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: DONOR DASHBOARD (Screen E & Section 7) -->
+    <section id="view-donor" class="view-container">
+      <div class="container">
+        <!-- Donor Welcome Banner -->
+        <div class="dashboard-header-banner">
+          <div class="donor-summary-left">
+            <div class="blood-badge lg" id="donor-blood-group-badge">O+</div>
+            <div>
+              <h2 class="greeting-text" id="donor-name-greeting">Welcome, Rahul 👋</h2>
+              <div class="sub-greeting">Blood Donor • Active Life Saver</div>
+              <div id="donor-eligibility-meter" style="margin-top: 6px;"></div>
+            </div>
+          </div>
+
+          <!-- Availability Switcher -->
+          <div class="availability-toggle-box">
+            <span id="donor-availability-badge" class="status-pill available">
+              <span class="status-dot"></span> Available to Donate
+            </span>
+            <label class="switch">
+              <input type="checkbox" id="donor-availability-switch" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- Left Column: Nearby Matching Requests -->
+          <div>
+            <div class="section-header">
+              <h3 class="section-title">🚨 Nearby Blood Requests Matching You</h3>
+              <span class="status-pill" style="background: rgba(225,29,72,0.15); color: var(--blood-light);" id="donor-nearby-pill">
+                Matching Donors Feed
+              </span>
+            </div>
+
+            <div class="requests-feed" id="donor-nearby-requests-feed">
+              <!-- Loaded via JavaScript -->
+              <div style="text-align: center; padding: 2rem; color: #94a3b8;">Loading nearby requests...</div>
+            </div>
+          </div>
+
+          <!-- Right Column: Quick Actions & Profile Summary -->
+          <div>
+            <div class="glass-card" style="margin-bottom: 1.5rem;">
+              <h3 class="section-title" style="margin-bottom: 1rem;">⚡ Quick Actions</h3>
+              <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <button class="btn btn-secondary" onclick="App.switchView('search')" style="justify-content: flex-start;">
+                  🔎 Browse All Requests
+                </button>
+                <button class="btn btn-secondary" onclick="App.switchView('history')" style="justify-content: flex-start;">
+                  📜 My Donation Certificates
+                </button>
+                <button class="btn btn-secondary" onclick="App.openModal('modal-donor-profile')" style="justify-content: flex-start;">
+                  👤 Update My Location & Profile
+                </button>
+              </div>
+            </div>
+
+            <div class="glass-card">
+              <h3 class="section-title" style="margin-bottom: 1rem;">📊 My Impact Stats</h3>
+              <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">
+                  <span style="color: var(--text-muted);">Total Completed Donations</span>
+                  <b style="font-size: 1.2rem; color: #fff;" id="donor-total-donations">0</b>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">
+                  <span style="color: var(--text-muted);">Nearby Requests Pending</span>
+                  <b style="font-size: 1.2rem; color: var(--blood-light);" id="donor-nearby-count">0</b>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="color: var(--text-muted);">Badge Status</span>
+                  <span style="color: var(--accent-emerald); font-weight: bold;">⭐ Silver Donor</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: RECIPIENT DASHBOARD & ACTIVE REQUESTS -->
+    <section id="view-recipient" class="view-container">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h2>🧑 Recipient Management Hub</h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Track your published blood requests and matched volunteer donors.</p>
+          </div>
+          <button class="btn btn-emergency-pulse" onclick="App.openModal('modal-request-blood')">
+            🚨 Create New Request
+          </button>
+        </div>
+
+        <div class="glass-card" style="margin-top: 1.5rem;">
+          <h3 class="section-title" style="margin-bottom: 1rem;">📋 My Active Requests</h3>
+          <div class="requests-feed" id="recipient-requests-feed">
+            <div style="text-align:center; padding: 2rem; color: #94a3b8;">Loading requests...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: DONOR SEARCH & INTERACTIVE MAP MODULE (Screens G & J) -->
+    <section id="view-search" class="view-container">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h2>🔎 Find Verified Donors in Radius</h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Interactive Leaflet Geospatial Map with Haversine spherical distance calculation.</p>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="App.openModal('modal-request-blood')">
+            🚨 Create Request Instead
+          </button>
+        </div>
+
+        <!-- Search Controls -->
+        <div class="glass-card search-controls-card">
+          <form id="form-donor-search" class="search-form-grid">
+            <div class="form-group">
+              <label class="form-label">Blood Group</label>
+              <select id="search-blood-group" class="form-control">
+                <option value="ALL">All Compatible Groups</option>
+                <option value="O+">O+</option>
+                <option value="O-">O- (Universal Donor)</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+ (Universal Recipient)</option>
+                <option value="AB-">AB-</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Search Center Location</label>
+              <select id="search-preset-location" class="form-control" onchange="
+                const parts = this.value.split(',');
+                document.getElementById('search-lat').value = parts[0];
+                document.getElementById('search-lon').value = parts[1];
+              ">
+                <option value="17.4938,78.3188">Hyderabad — Lingampally (Default)</option>
+                <option value="17.4401,78.3489">Hyderabad — Gachibowli</option>
+                <option value="17.4474,78.3762">Hyderabad — Hitec City</option>
+                <option value="17.4156,78.4352">Hyderabad — Banjara Hills</option>
+                <option value="17.4255,78.4124">Hyderabad — Apollo Jubilee Hills</option>
+              </select>
+              <input type="hidden" id="search-lat" value="17.4938">
+              <input type="hidden" id="search-lon" value="78.3188">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Search Radius: <span id="search-radius-val" style="color:var(--blood-light); font-weight:bold;">15 km</span></label>
+              <input type="range" id="search-radius" min="1" max="50" value="15" class="form-control" style="padding: 0.2rem;" oninput="document.getElementById('search-radius-val').textContent = this.value + ' km';">
+            </div>
+
+            <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px;">
+              <input type="checkbox" id="search-avail-only" checked style="width: 18px; height: 18px;">
+              <label for="search-avail-only" class="form-label" style="margin: 0; cursor: pointer;">Available Only</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="height: 42px;">
+              🔍 Run Haversine Search
+            </button>
+          </form>
+        </div>
+
+        <!-- Split View: Left List, Right Leaflet Map -->
+        <div class="search-split-layout">
+          <div class="donors-results-list" id="donor-search-results">
+            <!-- Results dynamically loaded -->
+          </div>
+
+          <div class="map-wrapper">
+            <div id="leaflet-map"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 5: DONATION HISTORY & OFFICIAL CERTIFICATES (Screens K & L) -->
+    <section id="view-history" class="view-container">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h2>📜 Donation History & Verification Certificates</h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Official verification records of completed life-saving blood donations.</p>
+          </div>
+        </div>
+
+        <div id="donation-history-list">
+          <!-- Loaded via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 6: ADMIN DASHBOARD (Screen M & Section 15) -->
+    <section id="view-admin" class="view-container">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h2>🛡️ Central Administrator Dashboard</h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">System-wide telemetry, user management, and blood reserve inventory.</p>
+          </div>
+        </div>
+
+        <!-- Metrics Cards Grid -->
+        <div class="admin-metrics-grid">
+          <div class="admin-metric-card">
+            <div class="metric-icon-box">👥</div>
+            <div>
+              <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Total Users</div>
+              <div style="font-size: 1.8rem; font-weight: 800; font-family: 'Outfit';" id="admin-stat-users">0</div>
+            </div>
+          </div>
+          <div class="admin-metric-card">
+            <div class="metric-icon-box">🩸</div>
+            <div>
+              <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Registered Donors</div>
+              <div style="font-size: 1.8rem; font-weight: 800; font-family: 'Outfit';" id="admin-stat-donors">0</div>
+            </div>
+          </div>
+          <div class="admin-metric-card">
+            <div class="metric-icon-box">🚨</div>
+            <div>
+              <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Active Requests</div>
+              <div style="font-size: 1.8rem; font-weight: 800; font-family: 'Outfit'; color: var(--blood-light);" id="admin-stat-active-reqs">0</div>
+            </div>
+          </div>
+          <div class="admin-metric-card">
+            <div class="metric-icon-box">✅</div>
+            <div>
+              <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Completed Donations</div>
+              <div style="font-size: 1.8rem; font-weight: 800; font-family: 'Outfit'; color: var(--accent-emerald);" id="admin-stat-completed-reqs">0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- Users Management Table -->
+          <div>
+            <div class="glass-card">
+              <h3 class="section-title" style="margin-bottom: 1rem;">👥 User Accounts Directory</h3>
+              <div class="data-table-wrapper">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Name</th>
+                      <th>Role</th>
+                      <th>Email</th>
+                      <th>Group</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-users-table-body">
+                    <!-- Populated by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Blood Distribution Graph -->
+          <div>
+            <div class="glass-card">
+              <h3 class="section-title" style="margin-bottom: 1rem;">📊 Donor Blood Reserves</h3>
+              <div id="admin-blood-distribution">
+                <!-- Bar distribution -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================
+       MODALS
+       ======================================================================== -->
+
+  <!-- Modal: Login -->
+  <div class="modal-overlay" id="modal-login">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>🔑 Login to BloodConnect</h3>
+        <button class="btn-close-modal">&times;</button>
+      </div>
+      <form id="form-login">
+        <div class="modal-body">
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Email or Phone Number</label>
+            <input type="text" id="login-email" class="form-control" placeholder="e.g. rahul@gmail.com" required>
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Password</label>
+            <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-close-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Login &rarr;</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Special Credentials Admin Login -->
+  <div class="modal-overlay" id="modal-admin-login">
+    <div class="modal-dialog">
+      <div class="modal-header" style="border-bottom: 1px solid rgba(225,29,72,0.3); background: rgba(225,29,72,0.06);">
+        <h3 style="color: var(--blood-light); display: flex; align-items: center; gap: 8px;">
+          🛡️ Administrator Portal (High-Security Access)
+        </h3>
+        <button class="btn-close-modal">&times;</button>
+      </div>
+      <form id="form-admin-login">
+        <div class="modal-body">
+          <div style="background: rgba(225,29,72,0.1); border: 1px solid rgba(225,29,72,0.25); border-radius: 8px; padding: 0.85rem; margin-bottom: 1.25rem; font-size: 0.85rem; color: #fecdd3;">
+            🔒 <b>Restricted Access:</b> Requires official administrator credentials and master security key clearance.
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Authorized Admin Email</label>
+            <input type="email" id="admin-login-email" class="form-control" value="admin@bloodconnect.org" required>
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Special Admin Security Key / Clearance Passcode</label>
+            <input type="password" id="admin-login-key" class="form-control" placeholder="Enter ADMIN@SECURE#2026 or password" required>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-autofill-admin-credentials" style="font-size:0.75rem;">
+              🔑 Autofill Master Clearance Key
+            </button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-close-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #be123c, #881337);">
+            🛡️ Verify & Enter Admin Console &rarr;
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Registration (Screen C & D) -->
+  <div class="modal-overlay" id="modal-register">
+    <div class="modal-dialog" style="max-width: 680px;">
+      <div class="modal-header">
+        <h3>🩸 Create BloodConnect Account</h3>
+        <button class="btn-close-modal">&times;</button>
+      </div>
+      <form id="form-register">
+        <div class="modal-body">
+          <label class="form-label" style="margin-bottom: 0.5rem; display: block;">Who are you registering as?</label>
+          <div style="display: flex; gap: 1rem; margin-bottom: 1.25rem;">
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <input type="radio" name="reg-role" value="donor" checked>
+              <span>🩸 Blood Donor</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <input type="radio" name="reg-role" value="recipient">
+              <span>🧑 Blood Recipient</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <input type="radio" name="reg-role" value="hospital">
+              <span>🏥 Hospital</span>
+            </label>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" id="reg-name" class="form-control" placeholder="Rahul Sharma" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mobile Number</label>
+              <input type="tel" id="reg-phone" class="form-control" placeholder="+91 98765 43210" required>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input type="email" id="reg-email" class="form-control" placeholder="rahul@example.com" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <input type="password" id="reg-password" class="form-control" placeholder="••••••••" required>
+            </div>
+          </div>
+
+          <!-- Extended Donor Fields -->
+          <div id="register-donor-fields">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+              <div class="form-group">
+                <label class="form-label">Blood Group</label>
+                <select id="reg-blood-group" class="form-control">
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Gender</label>
+                <select id="reg-gender" class="form-control">
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Date of Birth</label>
+                <input type="date" id="reg-dob" class="form-control" value="1998-05-15">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+              <div class="form-group">
+                <label class="form-label">City</label>
+                <input type="text" id="reg-city" class="form-control" value="Hyderabad">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Area / Locality</label>
+                <input type="text" id="reg-area" class="form-control" value="Lingampally">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+              <div class="form-group">
+                <label class="form-label">Latitude</label>
+                <input type="number" step="0.0001" id="reg-latitude" class="form-control" value="17.4938">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Longitude</label>
+                <input type="number" step="0.0001" id="reg-longitude" class="form-control" value="78.3188">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Last Blood Donation Date (Leave empty if first time)</label>
+              <input type="date" id="reg-last-donation" class="form-control" value="2026-05-10">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-close-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Create Blood Request (Screen F & Section 8) -->
+  <div class="modal-overlay" id="modal-request-blood">
+    <div class="modal-dialog" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3 style="color: var(--blood-light);">🚨 Create Blood Request</h3>
+        <button class="btn-close-modal">&times;</button>
+      </div>
+      <form id="form-create-blood-request">
+        <input type="hidden" id="req-target-donor-id" value="">
+        <div class="modal-body">
+          <div id="req-target-donor-banner" style="display:none; background:rgba(225,29,72,0.15); border:1px solid rgba(225,29,72,0.4); border-radius:10px; padding:12px 16px; margin-bottom:1.25rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <span style="font-size:0.7rem; text-transform:uppercase; color:#fb7185; font-weight:700; letter-spacing:0.5px; display:block;">🎯 Direct Request Targeting</span>
+                <span style="font-weight:700; color:#fff; font-size:0.95rem;" id="req-target-donor-name">Donor Name</span>
+                <span style="font-size:0.8rem; color:#cbd5e1;" id="req-target-donor-info">• Blood Group • Location</span>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="App.clearTargetDonor()" style="font-size:0.75rem; padding:4px 10px;">✕ Change to Broadcast</button>
+            </div>
+          </div>
+
+          <!-- Guest Requester Contact Fields (Shown only if not logged in) -->
+          <div id="req-guest-contact-fields" style="display:none; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:12px 16px; margin-bottom:1.25rem;">
+            <div style="font-size:0.75rem; text-transform:uppercase; color:#94a3b8; font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+              <span>📞 Your Contact Details</span>
+              <span style="font-size:0.7rem; color:#64748b; font-weight:normal;">(For donor coordination)</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="form-group">
+                <label class="form-label">Your Name</label>
+                <input type="text" id="req-contact-name" class="form-control" placeholder="e.g. Priya Sharma">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Mobile Number</label>
+                <input type="tel" id="req-contact-phone" class="form-control" placeholder="+91 98765 43210">
+              </div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-group">
+              <label class="form-label">Patient Full Name</label>
+              <input type="text" id="req-patient-name" class="form-control" placeholder="e.g. Ramesh Chandra" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Blood Group</label>
+              <select id="req-blood-group" class="form-control" required>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-group">
+              <label class="form-label">Units Required</label>
+              <input type="number" id="req-units" class="form-control" min="1" max="10" value="1" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Urgency Level</label>
+              <select id="req-urgency" class="form-control" required>
+                <option value="normal">○ Normal (Scheduled procedure)</option>
+                <option value="urgent">⚠️ Urgent (Within 24 hours)</option>
+                <option value="emergency" selected>🚨 EMERGENCY (Immediate ICU / Trauma)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Hospital / Blood Bank Name</label>
+            <input type="text" id="req-hospital" class="form-control" placeholder="e.g. Citizens Specialty Hospital, Lingampally" required>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-group">
+              <label class="form-label">City</label>
+              <input type="text" id="req-city" class="form-control" value="Hyderabad" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Area / Locality</label>
+              <input type="text" id="req-area" class="form-control" value="Lingampally">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-group">
+              <label class="form-label">Hospital Latitude</label>
+              <input type="number" step="0.0001" id="req-latitude" class="form-control" value="17.4950">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Hospital Longitude</label>
+              <input type="number" step="0.0001" id="req-longitude" class="form-control" value="78.3175">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Required By Date</label>
+            <input type="date" id="req-date" class="form-control" value="2026-10-08" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Clinical / Additional Notes</label>
+            <textarea id="req-notes" class="form-control" rows="2" placeholder="e.g. ICU Bed 4, Replacement donation urgently requested."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-close-modal">Cancel</button>
+          <button type="submit" id="req-submit-btn" class="btn btn-emergency-pulse">🚨 Broadcast Blood Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Official Blood Donation Certificate -->
+  <div class="modal-overlay" id="modal-certificate">
+    <div class="modal-dialog" style="max-width: 680px; background: transparent; border: none; box-shadow: none;">
+      <div id="certificate-render-area">
+        <!-- Rendered by JS -->
+      </div>
+      <div style="text-align: center; margin-top: 1rem;">
+        <button class="btn btn-secondary btn-close-modal">Close Certificate</button>
+        <button class="btn btn-primary" onclick="window.print()">🖨️ Print Certificate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Update Donor Profile & Location -->
+  <div class="modal-overlay" id="modal-donor-profile">
+    <div class="modal-dialog" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3>👤 Update My Donor Profile & Location</h3>
+        <button class="btn-close-modal">&times;</button>
+      </div>
+      <form id="form-donor-profile">
+        <div class="modal-body">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-group">
+              <label class="form-label">Blood Group</label>
+              <select id="donor-profile-blood-group" class="form-control" required>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Gender</label>
+              <select id="donor-profile-gender" class="form-control">
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-group">
+              <label class="form-label">City</label>
+              <input type="text" id="donor-profile-city" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Area / Locality</label>
+              <input type="text" id="donor-profile-area" class="form-control" required>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-group">
+              <label class="form-label">Latitude</label>
+              <input type="number" step="0.0001" id="donor-profile-lat" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Longitude</label>
+              <input type="number" step="0.0001" id="donor-profile-lon" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Last Blood Donation Date</label>
+            <input type="date" id="donor-profile-last-donation" class="form-control">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-close-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save & Update Profile</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       NOTIFICATION DRAWER (Screens H & Section 10)
+       ======================================================================== -->
+  <div class="notification-drawer" id="notification-drawer">
+    <div class="drawer-header">
+      <h3 style="font-size: 1.1rem; display: flex; align-items: center; gap: 6px;">
+        🔔 Real-Time Alerts
+      </h3>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-secondary btn-sm" id="btn-mark-all-read" style="font-size: 0.75rem;">Mark Read</button>
+        <button class="btn-close-modal" id="btn-close-drawer">&times;</button>
+      </div>
+    </div>
+    <div class="drawer-content" id="drawer-notifications-list">
+      <!-- Populated via JS -->
+    </div>
+  </div>
+
+  <!-- Toast Alerts Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Application Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
